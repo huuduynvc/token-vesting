@@ -124,6 +124,7 @@ module.exports = {
       polygon: `XUQ6GID599DWG22I87RMPTIWJ2TX6YUQE7`,
       "thunder-testnet": "unused",
       ftmTestnet: `${process.env.FTMSCAN_KEY}`,
+      opera: `${process.env.FTMSCAN_KEY}`,
     },
     customChains: [
       {

@@ -1,4 +1,3 @@
-const { ethers } = require("ethers");
 const hre = require("hardhat");
 
 async function main() {

@@ -20,7 +20,13 @@ The following assumes the use of `node@>=14` and `npm@>=6`.
 
 ## Run Tests
 
+### Localhost
+
 `npx hardhat --network localhost test` or `yarn test`
+
+### Fantom Testnet
+
+`node ./scripts/FTMT/token-vesting.js`
 
 ## Network
 
