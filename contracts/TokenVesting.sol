@@ -350,13 +350,13 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         // Otherwise, some tokens are releasable.
         else {
             // Compute the number of full vesting periods that have elapsed.
-            uint256 timeFromStart = currentTime - vestingSchedule.start;
+            uint256 timeFromStart = currentTime - vestingSchedule.cliff;
             uint256 secondsPerSlice = vestingSchedule.slicePeriodSeconds;
-            uint256 vestedSlicePeriods = timeFromStart / secondsPerSlice;
+            uint256 vestedSlicePeriods = timeFromStart / secondsPerSlice + 1;
             uint256 vestedSeconds = vestedSlicePeriods * secondsPerSlice;
             // Compute the amount of tokens that are vested.
             uint256 vestedAmount = (vestingSchedule.amountTotal *
-                vestedSeconds) / vestingSchedule.duration;
+                vestedSeconds) / (vestingSchedule.start + vestingSchedule.duration - vestingSchedule.cliff);
             // Subtract the amount already released and return.
             return vestedAmount - vestingSchedule.released;
         }
