@@ -4,13 +4,14 @@
   "description": "erc20 token vesting contract",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx hardhat --network localhost test"
   },
   "author": "duy nguyen",
   "license": "ISC",
   "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.6",
     "@nomiclabs/buidler": "^1.4.8",
-    "@nomiclabs/hardhat-ethers": "^2.2.1",
+    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers",
     "@nomiclabs/hardhat-ganache": "^2.0.0",
     "@nomiclabs/hardhat-truffle5": "^2.0.0",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -18,11 +19,12 @@
     "@openzeppelin/test-helpers": "^0.5.12",
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.4.0",
-    "ethers": "^5.4.1",
-    "hardhat": "^2.12.0",
+    "ethers": "^6.11.1",
+    "hardhat": "^2.20.1",
     "web3": "^1.4.0"
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
     "@nomiclabs/hardhat-etherscan": "^3.1.2",
     "@openzeppelin/contracts": "^4.3.2",
     "@openzeppelin/contracts-upgradeable": "^4.4.2",

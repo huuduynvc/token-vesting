@@ -2,17 +2,26 @@ const { ethers } = require("ethers");
 const hre = require("hardhat");
 
 async function main() {
-  // const tokenContract = await hre.ethers.getContractFactory("CasinoFi");
-  // const deployTokenContract = await tokenContract.deploy();
-  // await deployTokenContract.deployed();
-  // console.log("casino fi token contract :", deployTokenContract.address);
+  // deploy test token
+  const tokenContract = await hre.ethers.getContractFactory("Token");
+  const deployTokenContract = await tokenContract.deploy(
+    "TestToken",
+    "TT",
+    1000000
+  );
+  await deployTokenContract.deployed();
+  xư;
+  console.log("test token contract :", deployTokenContract.address);
 
-  const casinoContract = await hre.ethers.getContractFactory("CasinoContract");
-
-  // protocol fee, min deposit, max deposit, subscription id
-  const deployContract = await casinoContract.deploy(5, 3230);
-  await deployContract.deployed();
-  console.log("casino contract :", deployContract.address);
+  // deploy token vesting contract
+  const tokenVestinContract = await hre.ethers.getContractFactory(
+    "TokenVesting"
+  );
+  const deployTokenVestingContract = await tokenVestinContract.deploy(
+    deployTokenContract.address
+  );
+  await deployTokenVestingContract.deployed();
+  console.log("token vesting contract :", deployTokenVestingContract.address);
 }
 
 main()
