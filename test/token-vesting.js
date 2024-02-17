@@ -810,107 +810,272 @@ describe("TokenVesting", function () {
         ) / denom
       ).to.be.closeTo(Number(10000), 0.01);
 
-      // // check that only beneficiary can try to release vested tokens
-      // await expect(
-      //   tokenVesting
-      //     .connect(addr2)
-      //     .release(vestingScheduleId, ethers.parseUnits(String(100), decimal))
-      // ).to.be.revertedWith(
-      //   "TokenVesting: only beneficiary and owner can release vested tokens"
-      // );
+      for (let i = 1; i <= 50; i++) {
+        // set time to half the vesting period
+        const checkTime = baseTime + baseDuration * i + 1;
+        await tokenVesting.setCurrentTime(checkTime);
 
-      // // check that beneficiary cannot release more than the vested amount
-      // await expect(
-      //   tokenVesting
-      //     .connect(beneficiary)
-      //     .release(vestingScheduleId, ethers.parseUnits(String(100), decimal))
-      // ).to.be.revertedWith(
-      //   "TokenVesting: cannot release tokens, not enough vested tokens"
-      // );
+        if (i <= 6) {
+          // check that vested amount
+          expect(
+            Number(
+              await tokenVesting
+                .connect(addrRound1)
+                .computeReleasableAmount(round1VestingScheduleId)
+            ) / denom
+          ).to.be.equal(0);
 
-      // // release 10 tokens and check that a Transfer event is emitted with a value of 10
-      // await expect(
-      //   tokenVesting
-      //     .connect(beneficiary)
-      //     .release(vestingScheduleId, ethers.parseUnits(String(10), decimal))
-      // )
-      //   .to.emit(testToken, "Transfer")
-      //   .withArgs(
-      //     await tokenVesting.getAddress(),
-      //     beneficiary.address,
-      //     ethers.parseUnits(String(10), decimal)
-      //   );
+          expect(
+            Number(
+              await tokenVesting
+                .connect(addrRound2)
+                .computeReleasableAmount(round2VestingScheduleId)
+            ) / denom
+          ).to.be.equal(0);
 
-      // // check that the vested amount is now 40
-      // expect(
-      //   await tokenVesting
-      //     .connect(beneficiary)
-      //     .computeReleasableAmount(vestingScheduleId)
-      // ).to.be.equal(ethers.parseUnits(String(40), decimal));
-      // let vestingSchedule = await tokenVesting.getVestingSchedule(
-      //   vestingScheduleId
-      // );
+          expect(
+            Number(
+              await tokenVesting
+                .connect(addrRound3)
+                .computeReleasableAmount(round3VestingScheduleId)
+            ) / denom
+          ).to.be.equal(0);
 
-      // // check that the released amount is 10
-      // expect(Number(vestingSchedule.released) / denom).to.be.equal(10);
+          expect(
+            Number(
+              await tokenVesting
+                .connect(addrRound4)
+                .computeReleasableAmount(round4VestingScheduleId)
+            ) / denom
+          ).to.be.closeTo(Number(1666.667), 1);
 
-      // // set current time after the end of the vesting period
-      // await tokenVesting.setCurrentTime(baseTime + duration + 1);
+          // check that only beneficiary can try to release vested tokens
+          await expect(
+            tokenVesting
+              .connect(addr2)
+              .release(
+                round4VestingScheduleId,
+                ethers.parseUnits(String(100), decimal)
+              )
+          ).to.be.revertedWith(
+            "TokenVesting: only beneficiary and owner can release vested tokens"
+          );
 
-      // // check that the vested amount is 90
-      // expect(
-      //   await tokenVesting
-      //     .connect(beneficiary)
-      //     .computeReleasableAmount(vestingScheduleId)
-      // ).to.be.equal(ethers.parseUnits(String(90), decimal));
+          // check that beneficiary cannot release more than the vested amount
+          await expect(
+            tokenVesting
+              .connect(addrRound4)
+              .release(
+                round4VestingScheduleId,
+                ethers.parseUnits(String(1700), decimal)
+              )
+          ).to.be.revertedWith(
+            "TokenVesting: cannot release tokens, not enough vested tokens"
+          );
 
-      // // beneficiary release vested tokens (45)
-      // await expect(
-      //   tokenVesting
-      //     .connect(beneficiary)
-      //     .release(vestingScheduleId, ethers.parseUnits(String(45), decimal))
-      // )
-      //   .to.emit(testToken, "Transfer")
-      //   .withArgs(
-      //     await tokenVesting.getAddress(),
-      //     beneficiary.address,
-      //     ethers.parseUnits(String(45), decimal)
-      //   );
+          // release tokens and check that a Transfer event is emitted with a value of 10
+          await expect(
+            tokenVesting
+              .connect(addrRound4)
+              .release(
+                round4VestingScheduleId,
+                ethers.parseUnits(String(1666.6), decimal)
+              )
+          )
+            .to.emit(testToken, "Transfer")
+            .withArgs(
+              await tokenVesting.getAddress(),
+              addrRound4.address,
+              ethers.parseUnits(String(1666.6), decimal)
+            );
+        } else if (i >= 12 && i <= 13) {
+          // check that vested amount
+          expect(
+            Number(
+              await tokenVesting
+                .connect(addrRound1)
+                .computeReleasableAmount(round1VestingScheduleId)
+            ) / denom
+          ).to.be.closeTo(Number(2500), 0.1);
 
-      // // owner release vested tokens (45)
-      // await expect(
-      //   tokenVesting
-      //     .connect(owner)
-      //     .release(vestingScheduleId, ethers.parseUnits(String(45), decimal))
-      // )
-      //   .to.emit(testToken, "Transfer")
-      //   .withArgs(
-      //     await tokenVesting.getAddress(),
-      //     beneficiary.address,
-      //     ethers.parseUnits(String(45), decimal)
-      //   );
-      // vestingSchedule = await tokenVesting.getVestingSchedule(
-      //   vestingScheduleId
-      // );
+          expect(
+            Number(
+              await tokenVesting
+                .connect(addrRound2)
+                .computeReleasableAmount(round2VestingScheduleId)
+            ) / denom
+          ).to.be.closeTo(Number(0), 0.1);
 
-      // // check that the number of released tokens is 100
-      // expect(vestingSchedule.released).to.be.equal(
-      //   ethers.parseUnits(String(100), decimal)
-      // );
+          expect(
+            Number(
+              await tokenVesting
+                .connect(addrRound3)
+                .computeReleasableAmount(round3VestingScheduleId)
+            ) / denom
+          ).to.be.closeTo(Number(0), 0.01);
 
-      // // check that the vested amount is 0
-      // expect(
-      //   await tokenVesting
-      //     .connect(beneficiary)
-      //     .computeReleasableAmount(vestingScheduleId)
-      // ).to.be.equal(0);
+          expect(
+            Number(
+              await tokenVesting
+                .connect(addrRound4)
+                .computeReleasableAmount(round4VestingScheduleId)
+            ) / denom
+          ).to.be.closeTo(Number(0), 1);
 
-      // // check that anyone cannot revoke a vesting
-      // await expect(
-      //   tokenVesting.connect(addr2).revoke(vestingScheduleId)
-      // ).to.be.revertedWith("Ownable: caller is not the owner");
+          // check that only beneficiary can try to release vested tokens
+          await expect(
+            tokenVesting
+              .connect(addr2)
+              .release(
+                round1VestingScheduleId,
+                ethers.parseUnits(String(100), decimal)
+              )
+          ).to.be.revertedWith(
+            "TokenVesting: only beneficiary and owner can release vested tokens"
+          );
 
-      // await tokenVesting.revoke(vestingScheduleId);
+          // check that beneficiary cannot release more than the vested amount
+          await expect(
+            tokenVesting
+              .connect(addrRound1)
+              .release(
+                round1VestingScheduleId,
+                ethers.parseUnits(String(3000), decimal)
+              )
+          ).to.be.revertedWith(
+            "TokenVesting: cannot release tokens, not enough vested tokens"
+          );
+
+          // release tokens and check that a Transfer event is emitted with a value of 10
+          await expect(
+            tokenVesting
+              .connect(addrRound1)
+              .release(
+                round1VestingScheduleId,
+                ethers.parseUnits(String(2500), decimal)
+              )
+          )
+            .to.emit(testToken, "Transfer")
+            .withArgs(
+              await tokenVesting.getAddress(),
+              addrRound1.address,
+              ethers.parseUnits(String(2500), decimal)
+            );
+        } else if (i >= 14 && i <= 24) {
+          // check that vested amount
+          expect(
+            Number(
+              await tokenVesting
+                .connect(addrRound1)
+                .computeReleasableAmount(round1VestingScheduleId)
+            ) / denom
+          ).to.be.closeTo(Number(2500), 1);
+
+          expect(
+            Number(
+              await tokenVesting
+                .connect(addrRound2)
+                .computeReleasableAmount(round2VestingScheduleId)
+            ) / denom
+          ).to.be.closeTo(Number(909.09), 1);
+
+          expect(
+            Number(
+              await tokenVesting
+                .connect(addrRound3)
+                .computeReleasableAmount(round3VestingScheduleId)
+            ) / denom
+          ).to.be.closeTo(Number(0), 0.01);
+
+          expect(
+            Number(
+              await tokenVesting
+                .connect(addrRound4)
+                .computeReleasableAmount(round4VestingScheduleId)
+            ) / denom
+          ).to.be.closeTo(Number(0), 1);
+
+          // check that only beneficiary can try to release vested tokens
+          await expect(
+            tokenVesting
+              .connect(addr2)
+              .release(
+                round1VestingScheduleId,
+                ethers.parseUnits(String(100), decimal)
+              )
+          ).to.be.revertedWith(
+            "TokenVesting: only beneficiary and owner can release vested tokens"
+          );
+
+          // check that beneficiary cannot release more than the vested amount
+          await expect(
+            tokenVesting
+              .connect(addrRound1)
+              .release(
+                round1VestingScheduleId,
+                ethers.parseUnits(String(3000), decimal)
+              )
+          ).to.be.revertedWith(
+            "TokenVesting: cannot release tokens, not enough vested tokens"
+          );
+
+          // release tokens and check that a Transfer event is emitted with a value of 10
+          await expect(
+            tokenVesting
+              .connect(addrRound1)
+              .release(
+                round1VestingScheduleId,
+                ethers.parseUnits(String(2500), decimal)
+              )
+          )
+            .to.emit(testToken, "Transfer")
+            .withArgs(
+              await tokenVesting.getAddress(),
+              addrRound1.address,
+              ethers.parseUnits(String(2500), decimal)
+            );
+
+          // check that only beneficiary can try to release vested tokens
+          await expect(
+            tokenVesting
+              .connect(addr2)
+              .release(
+                round2VestingScheduleId,
+                ethers.parseUnits(String(100), decimal)
+              )
+          ).to.be.revertedWith(
+            "TokenVesting: only beneficiary and owner can release vested tokens"
+          );
+
+          // check that beneficiary cannot release more than the vested amount
+          await expect(
+            tokenVesting
+              .connect(addrRound2)
+              .release(
+                round2VestingScheduleId,
+                ethers.parseUnits(String(3000), decimal)
+              )
+          ).to.be.revertedWith(
+            "TokenVesting: cannot release tokens, not enough vested tokens"
+          );
+
+          // release tokens and check that a Transfer event is emitted with a value of 10
+          await expect(
+            tokenVesting
+              .connect(addrRound2)
+              .release(
+                round2VestingScheduleId,
+                ethers.parseUnits(String(909.09), decimal)
+              )
+          )
+            .to.emit(testToken, "Transfer")
+            .withArgs(
+              await tokenVesting.getAddress(),
+              addrRound2.address,
+              ethers.parseUnits(String(909.09), decimal)
+            );
+        }
+      }
     });
   });
 });

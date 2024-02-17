@@ -103,6 +103,16 @@ module.exports = {
       url: "https://goerli.infura.io/v3/3eadb2e1b6db490994b8ca1626250298",
       accounts: [`${process.env.PRIVATE_KEY}`],
     },
+    ftmTestnet: {
+      url: "https://rpc.testnet.fantom.network",
+      chainId: 4002,
+      accounts: [`${process.env.PRIVATE_KEY}`],
+    },
+    ftmMainnet: {
+      url: `https://rpcapi.fantom.network`,
+      chainId: 250,
+      accounts: [`${process.env.PRIVATE_KEY}`],
+    },
   },
   etherscan: {
     apiKey: {
@@ -113,6 +123,7 @@ module.exports = {
       bsc: `${process.env.ETHERSCAN_KEY}`,
       polygon: `XUQ6GID599DWG22I87RMPTIWJ2TX6YUQE7`,
       "thunder-testnet": "unused",
+      ftmTestnet: `${process.env.FTMSCAN_KEY}`,
     },
     customChains: [
       {
