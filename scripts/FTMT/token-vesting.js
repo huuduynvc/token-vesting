@@ -8,8 +8,8 @@ async function main() {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
   // token vesting contract
-  const tokenAddress = "0xC8418aa134DFC8E72Ca1a5CCE4a0f22BDe648Ba6";
-  const mockTokenVestingAddress = "0xC1Aa8416Bf1dB8f2775EcfeeC31D7621F0FFb065";
+  const tokenAddress = "0x9c4A9901B123123ce77401f97AbA1A81B30e576C";
+  const mockTokenVestingAddress = "0x9c33A3AbFb90d007093A181a1a64bF37fda9DdeB";
 
   const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, signer);
 
@@ -32,23 +32,11 @@ async function main() {
     provider
   );
 
-  const round1VestingScheduleId =
-    await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
-      walletRound1.address,
-      0
-    );
-
   // create signer 2
   const walletRound2 = new ethers.Wallet(
     process.env.ADDR_ROUND_2_PRIVATE_KEY,
     provider
   );
-
-  const round2VestingScheduleId =
-    await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
-      walletRound2.address,
-      0
-    );
 
   // create signer 3
   const walletRound3 = new ethers.Wallet(
@@ -56,23 +44,11 @@ async function main() {
     provider
   );
 
-  const round3VestingScheduleId =
-    await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
-      walletRound3.address,
-      0
-    );
-
   // create signer 4
   const walletRound4 = new ethers.Wallet(
     process.env.ADDR_ROUND_4_PRIVATE_KEY,
     provider
   );
-
-  const round4VestingScheduleId =
-    await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
-      walletRound4.address,
-      0
-    );
 
   // create vesting schedule
   const baseTime = 1622551248;
@@ -93,6 +69,12 @@ async function main() {
     ethers.parseUnits(String(50000), decimal)
   );
 
+  const round1VestingScheduleId =
+    await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
+      walletRound1.address,
+      0
+    );
+
   // create new vesting schedule for round 2
   await tokenVesting.createVestingSchedule(
     walletRound2.address,
@@ -103,6 +85,12 @@ async function main() {
     revokable,
     ethers.parseUnits(String(20000), decimal)
   );
+
+  const round2VestingScheduleId =
+    await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
+      walletRound2.address,
+      0
+    );
 
   // create new vesting schedule for round 3
   await tokenVesting.createVestingSchedule(
@@ -115,6 +103,12 @@ async function main() {
     ethers.parseUnits(String(20000), decimal)
   );
 
+  const round3VestingScheduleId =
+    await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
+      walletRound3.address,
+      0
+    );
+
   // create new vesting schedule for round 4
   await tokenVesting.createVestingSchedule(
     walletRound4.address,
@@ -125,6 +119,12 @@ async function main() {
     revokable,
     ethers.parseUnits(String(10000), decimal)
   );
+
+  const round4VestingScheduleId =
+    await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
+      walletRound4.address,
+      0
+    );
 
   for (let i = 1; i <= 50; i++) {
     // set time to half the vesting period
@@ -177,6 +177,7 @@ async function main() {
         ethers.parseUnits(String(833), decimal)
       );
     } else if (i >= 32 && i <= 35) {
+      await tokenVesting.setCurrentTime(checkTime);
       // release tokens
       await tokenVesting.release(
         round2VestingScheduleId,
@@ -189,6 +190,7 @@ async function main() {
         ethers.parseUnits(String(833), decimal)
       );
     } else if (i >= 36 && i <= 48) {
+      await tokenVesting.setCurrentTime(checkTime);
       // release tokens
       await tokenVesting.release(
         round3VestingScheduleId,
