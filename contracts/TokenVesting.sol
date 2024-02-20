@@ -5,46 +5,29 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import { EternalStorage } from './EternalStorage.sol';
 
 /**
  * @title TokenVesting
  */
-contract TokenVesting is Ownable, ReentrancyGuard {
-    struct VestingSchedule {
-        // beneficiary of tokens after they are released
-        address beneficiary;
-        // cliff time of the vesting start in seconds since the UNIX epoch
-        uint256 cliff;
-        // start time of the vesting period in seconds since the UNIX epoch
-        uint256 start;
-        // duration of the vesting period in seconds
-        uint256 duration;
-        // duration of a slice period for the vesting in seconds
-        uint256 slicePeriodSeconds;
-        // whether or not the vesting is revocable
-        bool revocable;
-        // total amount of tokens to be released at the end of the vesting
-        uint256 amountTotal;
-        // amount of tokens released
-        uint256 released;
-        // whether or not the vesting has been revoked
-        bool revoked;
-    }
+contract TokenVesting is ReentrancyGuard, EternalStorage {
+    error NotOwner();
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    // address of the ERC20 token
-    IERC20 private immutable _token;
+    bytes32 internal constant KEY_IMPLEMENTATION = bytes32(0xcf27007a45f38072d009137e17b1481e8a89d63d4bc022b09a978e7ac6fa2f25);
+    bytes32 internal constant KEY_OWNER = bytes32(0xed42e7ab275fc4bbb0a5dd7c91f4d76bf5dff2d9ac2c358c58e5b8e1174269c9);
+    bytes32 internal constant KEY_VESTING_SCHEDULE_TOTAL_AMOUNT = bytes32(0x2fb5103b88ac7935266a7ada44f541c0e8bbf74fcfee6271b6284fd52c532b95);
+    bytes32 internal constant KEY_VESTING_SCHEDULE_IDS = bytes32(0xf43e7ece72b813ffc71bdadc7b2fb5bd8ed995255a764df0218e4122c2eec98d);
+    bytes32 internal constant KEY_ERC20_TOKEN = bytes32(0x4b9d07c541ff4d33ddd285800b35bfbb76b13ac586a26a7610794a2ff258d7e6);
 
-    bytes32[] private vestingSchedulesIds;
-    mapping(bytes32 => VestingSchedule) private vestingSchedules;
-    uint256 private vestingSchedulesTotalAmount;
-    mapping(address => uint256) private holdersVestingCount;
+    bytes32 internal constant KEY_VESTING_SCHEDULES_PREFIX = keccak256('vestingSchedules');
+    bytes32 internal constant KEY_HOLDERS_VESTING_COUNT_PREFIX = keccak256('holdersVestingCount');
 
     /**
      * @dev Reverts if the vesting schedule does not exist or has been revoked.
      */
     modifier onlyIfVestingScheduleNotRevoked(bytes32 vestingScheduleId) {
-        require(!vestingSchedules[vestingScheduleId].revoked);
+        require(!getBool(_getRevokedOfVestingScheduleKey(vestingScheduleId)));
         _;
     }
 
@@ -56,7 +39,93 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         // Check that the token address is not 0x0.
         require(token_ != address(0x0));
         // Set the token address.
-        _token = IERC20(token_);
+        _setAddress(KEY_ERC20_TOKEN, token_);
+        _setAddress(KEY_OWNER, msg.sender);
+    }
+
+    function _getBeneficiaryOfVestingScheduleKey(bytes32 vestingScheduleId) internal pure returns (bytes32) {
+        return keccak256(abi.encode(KEY_VESTING_SCHEDULES_PREFIX, vestingScheduleId, keccak256('beneficiary')));
+    }
+
+    function _getCliffOfVestingScheduleKey(bytes32 vestingScheduleId) internal pure returns (bytes32) {
+        return keccak256(abi.encode(KEY_VESTING_SCHEDULES_PREFIX, vestingScheduleId, keccak256('cliff')));
+    }
+
+    function _getStartOfVestingScheduleKey(bytes32 vestingScheduleId) internal pure returns (bytes32) {
+        return keccak256(abi.encode(KEY_VESTING_SCHEDULES_PREFIX, vestingScheduleId, keccak256('start')));
+    }
+
+    function _getDurationOfVestingScheduleKey(bytes32 vestingScheduleId) internal pure returns (bytes32) {
+        return keccak256(abi.encode(KEY_VESTING_SCHEDULES_PREFIX, vestingScheduleId, keccak256('duration')));
+    }
+
+    function _getSlicePeriodSecondsOfVestingScheduleKey(bytes32 vestingScheduleId) internal pure returns (bytes32) {
+        return keccak256(abi.encode(KEY_VESTING_SCHEDULES_PREFIX, vestingScheduleId, keccak256('slicePeriodSeconds')));
+    }
+
+    function _getRevocableOfVestingScheduleKey(bytes32 vestingScheduleId) internal pure returns (bytes32) {
+        return keccak256(abi.encode(KEY_VESTING_SCHEDULES_PREFIX, vestingScheduleId, keccak256('revocable')));
+    }
+
+    function _getAmountTotalOfVestingScheduleKey(bytes32 vestingScheduleId) internal pure returns (bytes32) {
+        return keccak256(abi.encode(KEY_VESTING_SCHEDULES_PREFIX, vestingScheduleId, keccak256('amountTotal')));
+    }
+
+    function _getReleasedOfVestingScheduleKey(bytes32 vestingScheduleId) internal pure returns (bytes32) {
+        return keccak256(abi.encode(KEY_VESTING_SCHEDULES_PREFIX, vestingScheduleId, keccak256('released')));
+    }
+
+    function _getRevokedOfVestingScheduleKey(bytes32 vestingScheduleId) internal pure returns (bytes32) {
+        return keccak256(abi.encode(KEY_VESTING_SCHEDULES_PREFIX, vestingScheduleId, keccak256('revoked')));
+    }
+
+    function _getHoldersVestingCountKey(address holder) internal pure returns (bytes32) {
+        return keccak256(abi.encode(KEY_HOLDERS_VESTING_COUNT_PREFIX, holder));
+    }
+
+    function upgrade(
+        address newImplementation
+    ) external onlyOwner {
+        _setAddress(KEY_IMPLEMENTATION, newImplementation);
+    }
+
+
+    /**
+     * @notice Ensures that the caller of the function is the governance address.
+     */
+    modifier onlyOwner() {
+        if (msg.sender != getAddress(KEY_OWNER)) revert NotOwner();
+        _;
+    }
+
+    /**
+     * @dev Leaves the contract without owner. It will not be possible to call
+     * `onlyOwner` functions. Can only be called by the current owner.
+     *
+     * NOTE: Renouncing ownership will leave the contract without an owner,
+     * thereby disabling any functionality that is only available to the owner.
+    */
+    function renounceOwnership() public virtual onlyOwner {
+        _transferOwnership(address(0));
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+    */
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        _transferOwnership(newOwner);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Internal function without access restriction.
+    */
+    function _transferOwnership(address newOwner) internal virtual {
+        address oldOwner = getAddress(KEY_OWNER);
+        _setAddress(KEY_OWNER, newOwner);
+        emit OwnershipTransferred(oldOwner, newOwner);
     }
 
     /**
@@ -104,21 +173,21 @@ contract TokenVesting is Ownable, ReentrancyGuard {
             _beneficiary
         );
         uint256 cliff = _start + _cliff;
-        vestingSchedules[vestingScheduleId] = VestingSchedule(
-            _beneficiary,
-            cliff,
-            _start,
-            _duration,
-            _slicePeriodSeconds,
-            _revocable,
-            _amount,
-            0,
-            false
-        );
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount + _amount;
-        vestingSchedulesIds.push(vestingScheduleId);
-        uint256 currentVestingCount = holdersVestingCount[_beneficiary];
-        holdersVestingCount[_beneficiary] = currentVestingCount + 1;
+        _setAddress(_getBeneficiaryOfVestingScheduleKey(vestingScheduleId), _beneficiary);
+        _setUint(_getCliffOfVestingScheduleKey(vestingScheduleId), cliff);
+        _setUint(_getStartOfVestingScheduleKey(vestingScheduleId), _start);
+        _setUint(_getDurationOfVestingScheduleKey(vestingScheduleId), _duration);
+        _setUint(_getSlicePeriodSecondsOfVestingScheduleKey(vestingScheduleId), _slicePeriodSeconds);
+        _setBool(_getRevocableOfVestingScheduleKey(vestingScheduleId), _revocable);
+        _setUint(_getAmountTotalOfVestingScheduleKey(vestingScheduleId), _amount);
+        _setUint(_getReleasedOfVestingScheduleKey(vestingScheduleId), 0);
+        _setBool(_getRevokedOfVestingScheduleKey(vestingScheduleId), false);
+
+        uint256 vestingSchedulesTotalAmount = getUint(_getAmountTotalOfVestingScheduleKey(vestingScheduleId)) + _amount;
+        _setUint(_getAmountTotalOfVestingScheduleKey(vestingScheduleId), vestingSchedulesTotalAmount);
+        _pushElementArrayBytes(KEY_VESTING_SCHEDULE_IDS, vestingScheduleId);
+        uint256 currentVestingCount = getUint(_getHoldersVestingCountKey(_beneficiary));
+        _setUint(_getHoldersVestingCountKey(_beneficiary), currentVestingCount + 1);
     }
 
     /**
@@ -128,21 +197,19 @@ contract TokenVesting is Ownable, ReentrancyGuard {
     function revoke(
         bytes32 vestingScheduleId
     ) external onlyOwner onlyIfVestingScheduleNotRevoked(vestingScheduleId) {
-        VestingSchedule storage vestingSchedule = vestingSchedules[
-            vestingScheduleId
-        ];
+
         require(
-            vestingSchedule.revocable,
+            getBool(_getRevocableOfVestingScheduleKey(vestingScheduleId)),
             "TokenVesting: vesting is not revocable"
         );
-        uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
+        uint256 vestedAmount = _computeReleasableAmount(vestingScheduleId);
         if (vestedAmount > 0) {
             release(vestingScheduleId, vestedAmount);
         }
-        uint256 unreleased = vestingSchedule.amountTotal -
-            vestingSchedule.released;
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount - unreleased;
-        vestingSchedule.revoked = true;
+
+        uint256 unreleased = getUint(_getAmountTotalOfVestingScheduleKey(vestingScheduleId)) - getUint(_getReleasedOfVestingScheduleKey(vestingScheduleId));
+        _setUint(KEY_VESTING_SCHEDULE_TOTAL_AMOUNT, getUint(KEY_VESTING_SCHEDULE_TOTAL_AMOUNT) - unreleased);
+        _setBool(_getRevokedOfVestingScheduleKey(vestingScheduleId), true);
     }
 
     /**
@@ -157,6 +224,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         /*
          * @dev Replaced owner() with msg.sender => address of WITHDRAWER_ROLE
          */
+        IERC20 _token = IERC20(getAddress(KEY_ERC20_TOKEN));
         SafeERC20.safeTransfer(_token, msg.sender, amount);
     }
 
@@ -169,26 +237,25 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         bytes32 vestingScheduleId,
         uint256 amount
     ) public nonReentrant onlyIfVestingScheduleNotRevoked(vestingScheduleId) {
-        VestingSchedule storage vestingSchedule = vestingSchedules[
-            vestingScheduleId
-        ];
-        bool isBeneficiary = msg.sender == vestingSchedule.beneficiary;
+        bool isBeneficiary = msg.sender == getAddress(_getBeneficiaryOfVestingScheduleKey(vestingScheduleId));
 
-        bool isReleasor = (msg.sender == owner());
+        bool isReleasor = (msg.sender == getAddress(KEY_OWNER));
         require(
             isBeneficiary || isReleasor,
             "TokenVesting: only beneficiary and owner can release vested tokens"
         );
-        uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
+        uint256 vestedAmount = _computeReleasableAmount(vestingScheduleId);
         require(
             vestedAmount >= amount,
             "TokenVesting: cannot release tokens, not enough vested tokens"
         );
-        vestingSchedule.released = vestingSchedule.released + amount;
+        uint256 newReleased = getUint(_getReleasedOfVestingScheduleKey(vestingScheduleId)) + amount;
+        _setUint(_getReleasedOfVestingScheduleKey(vestingScheduleId), newReleased);
         address payable beneficiaryPayable = payable(
-            vestingSchedule.beneficiary
+            getAddress(_getBeneficiaryOfVestingScheduleKey(vestingScheduleId))
         );
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount - amount;
+        _setUint(KEY_VESTING_SCHEDULE_TOTAL_AMOUNT, getUint(KEY_VESTING_SCHEDULE_TOTAL_AMOUNT) - amount);
+        IERC20 _token = IERC20(getAddress(KEY_ERC20_TOKEN));
         SafeERC20.safeTransfer(_token, beneficiaryPayable, amount);
     }
 
@@ -199,7 +266,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
     function getVestingSchedulesCountByBeneficiary(
         address _beneficiary
     ) external view returns (uint256) {
-        return holdersVestingCount[_beneficiary];
+        return getUint(_getHoldersVestingCountKey(_beneficiary));
     }
 
     /**
@@ -213,7 +280,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
             index < getVestingSchedulesCount(),
             "TokenVesting: index out of bounds"
         );
-        return vestingSchedulesIds[index];
+        return getArrayBytes(KEY_VESTING_SCHEDULE_IDS)[index];
     }
 
     /**
@@ -223,11 +290,18 @@ contract TokenVesting is Ownable, ReentrancyGuard {
     function getVestingScheduleByAddressAndIndex(
         address holder,
         uint256 index
-    ) external view returns (VestingSchedule memory) {
-        return
-            getVestingSchedule(
-                computeVestingScheduleIdForAddressAndIndex(holder, index)
-            );
+    ) external view returns (address, uint256, uint256, uint256, uint256, bool, uint256, uint256, bool) {
+        bytes32 vestingScheduleId = computeVestingScheduleIdForAddressAndIndex(holder, index);
+        
+        return (getAddress(_getBeneficiaryOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getCliffOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getStartOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getDurationOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getSlicePeriodSecondsOfVestingScheduleKey(vestingScheduleId)),
+            getBool(_getRevocableOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getAmountTotalOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getReleasedOfVestingScheduleKey(vestingScheduleId)),
+            getBool(_getRevokedOfVestingScheduleKey(vestingScheduleId)));        
     }
 
     /**
@@ -235,14 +309,14 @@ contract TokenVesting is Ownable, ReentrancyGuard {
      * @return the total amount of vesting schedules
      */
     function getVestingSchedulesTotalAmount() external view returns (uint256) {
-        return vestingSchedulesTotalAmount;
+        return getUint(KEY_VESTING_SCHEDULE_TOTAL_AMOUNT);
     }
 
     /**
      * @dev Returns the address of the ERC20 token managed by the vesting contract.
      */
     function getToken() external view returns (address) {
-        return address(_token);
+        return getAddress(KEY_ERC20_TOKEN);
     }
 
     /**
@@ -250,7 +324,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
      * @return the number of vesting schedules
      */
     function getVestingSchedulesCount() public view returns (uint256) {
-        return vestingSchedulesIds.length;
+        return getArrayBytes(KEY_VESTING_SCHEDULE_IDS).length;
     }
 
     /**
@@ -265,10 +339,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         onlyIfVestingScheduleNotRevoked(vestingScheduleId)
         returns (uint256)
     {
-        VestingSchedule storage vestingSchedule = vestingSchedules[
-            vestingScheduleId
-        ];
-        return _computeReleasableAmount(vestingSchedule);
+        return _computeReleasableAmount(vestingScheduleId);
     }
 
     /**
@@ -277,8 +348,16 @@ contract TokenVesting is Ownable, ReentrancyGuard {
      */
     function getVestingSchedule(
         bytes32 vestingScheduleId
-    ) public view returns (VestingSchedule memory) {
-        return vestingSchedules[vestingScheduleId];
+    ) public view returns (address, uint256, uint256, uint256, uint256, bool, uint256, uint256, bool) {
+        return (getAddress(_getBeneficiaryOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getCliffOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getStartOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getDurationOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getSlicePeriodSecondsOfVestingScheduleKey(vestingScheduleId)),
+            getBool(_getRevocableOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getAmountTotalOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getReleasedOfVestingScheduleKey(vestingScheduleId)),
+            getBool(_getRevokedOfVestingScheduleKey(vestingScheduleId)));        
     }
 
     /**
@@ -286,7 +365,8 @@ contract TokenVesting is Ownable, ReentrancyGuard {
      * @return the amount of tokens
      */
     function getWithdrawableAmount() public view returns (uint256) {
-        return _token.balanceOf(address(this)) - vestingSchedulesTotalAmount;
+        IERC20 _token = IERC20(getAddress(KEY_ERC20_TOKEN));
+        return _token.balanceOf(getAddress(KEY_IMPLEMENTATION)) - getUint(KEY_VESTING_SCHEDULE_TOTAL_AMOUNT);
     }
 
     /**
@@ -298,7 +378,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
         return
             computeVestingScheduleIdForAddressAndIndex(
                 holder,
-                holdersVestingCount[holder]
+                getUint(_getHoldersVestingCountKey(holder))
             );
     }
 
@@ -307,14 +387,17 @@ contract TokenVesting is Ownable, ReentrancyGuard {
      */
     function getLastVestingScheduleForHolder(
         address holder
-    ) external view returns (VestingSchedule memory) {
-        return
-            vestingSchedules[
-                computeVestingScheduleIdForAddressAndIndex(
-                    holder,
-                    holdersVestingCount[holder] - 1
-                )
-            ];
+    ) external view returns (address, uint256, uint256, uint256, uint256, bool, uint256, uint256, bool) {
+        bytes32 vestingScheduleId = computeVestingScheduleIdForAddressAndIndex(holder, getUint(_getHoldersVestingCountKey(holder)) - 1);
+        return (getAddress(_getBeneficiaryOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getCliffOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getStartOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getDurationOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getSlicePeriodSecondsOfVestingScheduleKey(vestingScheduleId)),
+            getBool(_getRevocableOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getAmountTotalOfVestingScheduleKey(vestingScheduleId)),
+            getUint(_getReleasedOfVestingScheduleKey(vestingScheduleId)),
+            getBool(_getRevokedOfVestingScheduleKey(vestingScheduleId)));        
     }
 
     /**
@@ -332,33 +415,32 @@ contract TokenVesting is Ownable, ReentrancyGuard {
      * @return the amount of releasable tokens
      */
     function _computeReleasableAmount(
-        VestingSchedule memory vestingSchedule
+        bytes32 vestingScheduleId
     ) internal view returns (uint256) {
         // Retrieve the current time.
         uint256 currentTime = getCurrentTime();
         // If the current time is before the cliff, no tokens are releasable.
-        if ((currentTime < vestingSchedule.cliff) || vestingSchedule.revoked) {
+        if ((currentTime < getUint(_getCliffOfVestingScheduleKey(vestingScheduleId))) || getBool(_getRevokedOfVestingScheduleKey(vestingScheduleId))) {
             return 0;
         }
         // If the current time is after the vesting period, all tokens are releasable,
         // minus the amount already released.
         else if (
-            currentTime >= vestingSchedule.start + vestingSchedule.duration
+            currentTime >= getUint(_getStartOfVestingScheduleKey(vestingScheduleId)) + getUint(_getDurationOfVestingScheduleKey(vestingScheduleId))
         ) {
-            return vestingSchedule.amountTotal - vestingSchedule.released;
+            return getUint(_getAmountTotalOfVestingScheduleKey(vestingScheduleId)) - getUint(_getReleasedOfVestingScheduleKey(vestingScheduleId));
         }
         // Otherwise, some tokens are releasable.
         else {
             // Compute the number of full vesting periods that have elapsed.
-            uint256 timeFromStart = currentTime - vestingSchedule.cliff;
-            uint256 secondsPerSlice = vestingSchedule.slicePeriodSeconds;
+            uint256 timeFromStart = currentTime - getUint(_getCliffOfVestingScheduleKey(vestingScheduleId));
+            uint256 secondsPerSlice = getUint(_getSlicePeriodSecondsOfVestingScheduleKey(vestingScheduleId));
             uint256 vestedSlicePeriods = timeFromStart / secondsPerSlice + 1;
             uint256 vestedSeconds = vestedSlicePeriods * secondsPerSlice;
             // Compute the amount of tokens that are vested.
-            uint256 vestedAmount = (vestingSchedule.amountTotal *
-                vestedSeconds) / (vestingSchedule.start + vestingSchedule.duration - vestingSchedule.cliff);
+            uint256 vestedAmount = getUint(_getAmountTotalOfVestingScheduleKey(vestingScheduleId)) * vestedSeconds / (getUint(_getStartOfVestingScheduleKey(vestingScheduleId)) + getUint(_getDurationOfVestingScheduleKey(vestingScheduleId)) - getUint(_getCliffOfVestingScheduleKey(vestingScheduleId)));
             // Subtract the amount already released and return.
-            return vestedAmount - vestingSchedule.released;
+            return vestedAmount - getUint(_getReleasedOfVestingScheduleKey(vestingScheduleId));
         }
     }
 

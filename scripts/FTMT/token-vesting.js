@@ -8,8 +8,8 @@ async function main() {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
   // token vesting contract
-  const tokenAddress = "0x9c4A9901B123123ce77401f97AbA1A81B30e576C";
-  const mockTokenVestingAddress = "0x9c33A3AbFb90d007093A181a1a64bF37fda9DdeB";
+  const tokenAddress = "0x35BCF6dF68C46cc35FB2B97Ae6Ff1503bFcC3f71";
+  const mockTokenVestingAddress = "0xAea11aD142C4a168314d123CE16dc28c5a56F88d";
 
   const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, signer);
 
@@ -89,7 +89,7 @@ async function main() {
   const round2VestingScheduleId =
     await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
       walletRound2.address,
-      0
+      1
     );
 
   // create new vesting schedule for round 3
@@ -106,7 +106,7 @@ async function main() {
   const round3VestingScheduleId =
     await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
       walletRound3.address,
-      0
+      2
     );
 
   // create new vesting schedule for round 4
@@ -123,7 +123,7 @@ async function main() {
   const round4VestingScheduleId =
     await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
       walletRound4.address,
-      0
+      3
     );
 
   for (let i = 1; i <= 50; i++) {

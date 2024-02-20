@@ -6,6 +6,7 @@
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
+  { "inputs": [], "name": "NotOwner", "type": "error" },
   {
     "anonymous": false,
     "inputs": [
@@ -78,40 +79,65 @@
     "type": "function"
   },
   {
+    "inputs": [{ "internalType": "bytes32", "name": "key", "type": "bytes32" }],
+    "name": "getAddress",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes32", "name": "key", "type": "bytes32" }],
+    "name": "getArrayBytes",
+    "outputs": [
+      { "internalType": "bytes32[]", "name": "", "type": "bytes32[]" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes32", "name": "key", "type": "bytes32" }],
+    "name": "getBool",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes32", "name": "key", "type": "bytes32" }],
+    "name": "getBytes",
+    "outputs": [{ "internalType": "bytes", "name": "", "type": "bytes" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes32", "name": "key", "type": "bytes32" }],
+    "name": "getInt",
+    "outputs": [{ "internalType": "int256", "name": "", "type": "int256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       { "internalType": "address", "name": "holder", "type": "address" }
     ],
     "name": "getLastVestingScheduleForHolder",
     "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "beneficiary",
-            "type": "address"
-          },
-          { "internalType": "uint256", "name": "cliff", "type": "uint256" },
-          { "internalType": "uint256", "name": "start", "type": "uint256" },
-          { "internalType": "uint256", "name": "duration", "type": "uint256" },
-          {
-            "internalType": "uint256",
-            "name": "slicePeriodSeconds",
-            "type": "uint256"
-          },
-          { "internalType": "bool", "name": "revocable", "type": "bool" },
-          {
-            "internalType": "uint256",
-            "name": "amountTotal",
-            "type": "uint256"
-          },
-          { "internalType": "uint256", "name": "released", "type": "uint256" },
-          { "internalType": "bool", "name": "revoked", "type": "bool" }
-        ],
-        "internalType": "struct TokenVesting.VestingSchedule",
-        "name": "",
-        "type": "tuple"
-      }
+      { "internalType": "address", "name": "", "type": "address" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "bool", "name": "", "type": "bool" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "bool", "name": "", "type": "bool" }
     ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes32", "name": "key", "type": "bytes32" }],
+    "name": "getString",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
     "stateMutability": "view",
     "type": "function"
   },
@@ -119,6 +145,13 @@
     "inputs": [],
     "name": "getToken",
     "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes32", "name": "key", "type": "bytes32" }],
+    "name": "getUint",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "view",
     "type": "function"
   },
@@ -141,34 +174,15 @@
     ],
     "name": "getVestingSchedule",
     "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "beneficiary",
-            "type": "address"
-          },
-          { "internalType": "uint256", "name": "cliff", "type": "uint256" },
-          { "internalType": "uint256", "name": "start", "type": "uint256" },
-          { "internalType": "uint256", "name": "duration", "type": "uint256" },
-          {
-            "internalType": "uint256",
-            "name": "slicePeriodSeconds",
-            "type": "uint256"
-          },
-          { "internalType": "bool", "name": "revocable", "type": "bool" },
-          {
-            "internalType": "uint256",
-            "name": "amountTotal",
-            "type": "uint256"
-          },
-          { "internalType": "uint256", "name": "released", "type": "uint256" },
-          { "internalType": "bool", "name": "revoked", "type": "bool" }
-        ],
-        "internalType": "struct TokenVesting.VestingSchedule",
-        "name": "",
-        "type": "tuple"
-      }
+      { "internalType": "address", "name": "", "type": "address" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "bool", "name": "", "type": "bool" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "bool", "name": "", "type": "bool" }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -180,34 +194,15 @@
     ],
     "name": "getVestingScheduleByAddressAndIndex",
     "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "beneficiary",
-            "type": "address"
-          },
-          { "internalType": "uint256", "name": "cliff", "type": "uint256" },
-          { "internalType": "uint256", "name": "start", "type": "uint256" },
-          { "internalType": "uint256", "name": "duration", "type": "uint256" },
-          {
-            "internalType": "uint256",
-            "name": "slicePeriodSeconds",
-            "type": "uint256"
-          },
-          { "internalType": "bool", "name": "revocable", "type": "bool" },
-          {
-            "internalType": "uint256",
-            "name": "amountTotal",
-            "type": "uint256"
-          },
-          { "internalType": "uint256", "name": "released", "type": "uint256" },
-          { "internalType": "bool", "name": "revoked", "type": "bool" }
-        ],
-        "internalType": "struct TokenVesting.VestingSchedule",
-        "name": "",
-        "type": "tuple"
-      }
+      { "internalType": "address", "name": "", "type": "address" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "bool", "name": "", "type": "bool" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "bool", "name": "", "type": "bool" }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -239,13 +234,6 @@
     "inputs": [],
     "name": "getWithdrawableAmount",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
     "stateMutability": "view",
     "type": "function"
   },
