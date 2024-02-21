@@ -38,6 +38,10 @@ The following assumes the use of `node@>=14` and `npm@>=6`.
 
 `npx hardhat run --network ftmTestnet deploy/FTMT/deploy.js`
 
+### Upgrade Proxy Fantom Test Net
+
+`npx hardhat run --network ftmTestnet deploy/FTMT/upgrade-proxy.js`
+
 ### Verify + public source code on bscscan test net
 
 1. Create new constructor params file in arguments folder

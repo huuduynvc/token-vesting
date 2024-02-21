@@ -1,8 +1,10 @@
 require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-ganache");
 require("@nomiclabs/hardhat-ethers");
-require("@nomiclabs/hardhat-etherscan");
+require("@nomicfoundation/hardhat-verify");
+// require("@nomiclabs/hardhat-etherscan");
 require("@nomicfoundation/hardhat-chai-matchers");
+require("@openzeppelin/hardhat-upgrades");
 require("dotenv").config();
 
 module.exports = {
@@ -35,6 +37,15 @@ module.exports = {
       },
       {
         version: "0.8.19",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1000,
+          },
+        },
+      },
+      {
+        version: "0.8.20",
         settings: {
           optimizer: {
             enabled: true,

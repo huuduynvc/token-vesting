@@ -1,10 +1,16 @@
 [
   {
+    "anonymous": false,
     "inputs": [
-      { "internalType": "address", "name": "token_", "type": "address" }
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "version",
+        "type": "uint8"
+      }
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    "name": "Initialized",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -60,7 +66,8 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "_beneficiary", "type": "address" },
+      { "internalType": "string", "name": "_id", "type": "string" },
+      { "internalType": "string", "name": "_name", "type": "string" },
       { "internalType": "uint256", "name": "_start", "type": "uint256" },
       { "internalType": "uint256", "name": "_cliff", "type": "uint256" },
       { "internalType": "uint256", "name": "_duration", "type": "uint256" },
@@ -69,6 +76,17 @@
         "name": "_slicePeriodSeconds",
         "type": "uint256"
       },
+      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
+    ],
+    "name": "createPackage",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_beneficiary", "type": "address" },
+      { "internalType": "string", "name": "_packageId", "type": "string" },
       { "internalType": "bool", "name": "_revocable", "type": "bool" },
       { "internalType": "uint256", "name": "_amount", "type": "uint256" }
     ],
@@ -90,14 +108,7 @@
             "name": "beneficiary",
             "type": "address"
           },
-          { "internalType": "uint256", "name": "cliff", "type": "uint256" },
-          { "internalType": "uint256", "name": "start", "type": "uint256" },
-          { "internalType": "uint256", "name": "duration", "type": "uint256" },
-          {
-            "internalType": "uint256",
-            "name": "slicePeriodSeconds",
-            "type": "uint256"
-          },
+          { "internalType": "string", "name": "packageId", "type": "string" },
           { "internalType": "bool", "name": "revocable", "type": "bool" },
           {
             "internalType": "uint256",
@@ -107,7 +118,32 @@
           { "internalType": "uint256", "name": "released", "type": "uint256" },
           { "internalType": "bool", "name": "revoked", "type": "bool" }
         ],
-        "internalType": "struct TokenVesting.VestingSchedule",
+        "internalType": "struct MockTokenVesting.VestingSchedule",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "string", "name": "_id", "type": "string" }],
+    "name": "getPackage",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "string", "name": "name", "type": "string" },
+          { "internalType": "uint256", "name": "cliff", "type": "uint256" },
+          { "internalType": "uint256", "name": "start", "type": "uint256" },
+          { "internalType": "uint256", "name": "duration", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "slicePeriodSeconds",
+            "type": "uint256"
+          },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" }
+        ],
+        "internalType": "struct MockTokenVesting.Package",
         "name": "",
         "type": "tuple"
       }
@@ -148,14 +184,7 @@
             "name": "beneficiary",
             "type": "address"
           },
-          { "internalType": "uint256", "name": "cliff", "type": "uint256" },
-          { "internalType": "uint256", "name": "start", "type": "uint256" },
-          { "internalType": "uint256", "name": "duration", "type": "uint256" },
-          {
-            "internalType": "uint256",
-            "name": "slicePeriodSeconds",
-            "type": "uint256"
-          },
+          { "internalType": "string", "name": "packageId", "type": "string" },
           { "internalType": "bool", "name": "revocable", "type": "bool" },
           {
             "internalType": "uint256",
@@ -165,7 +194,7 @@
           { "internalType": "uint256", "name": "released", "type": "uint256" },
           { "internalType": "bool", "name": "revoked", "type": "bool" }
         ],
-        "internalType": "struct TokenVesting.VestingSchedule",
+        "internalType": "struct MockTokenVesting.VestingSchedule",
         "name": "",
         "type": "tuple"
       }
@@ -187,14 +216,7 @@
             "name": "beneficiary",
             "type": "address"
           },
-          { "internalType": "uint256", "name": "cliff", "type": "uint256" },
-          { "internalType": "uint256", "name": "start", "type": "uint256" },
-          { "internalType": "uint256", "name": "duration", "type": "uint256" },
-          {
-            "internalType": "uint256",
-            "name": "slicePeriodSeconds",
-            "type": "uint256"
-          },
+          { "internalType": "string", "name": "packageId", "type": "string" },
           { "internalType": "bool", "name": "revocable", "type": "bool" },
           {
             "internalType": "uint256",
@@ -204,7 +226,7 @@
           { "internalType": "uint256", "name": "released", "type": "uint256" },
           { "internalType": "bool", "name": "revoked", "type": "bool" }
         ],
-        "internalType": "struct TokenVesting.VestingSchedule",
+        "internalType": "struct MockTokenVesting.VestingSchedule",
         "name": "",
         "type": "tuple"
       }
@@ -240,6 +262,15 @@
     "name": "getWithdrawableAmount",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "token_", "type": "address" }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   },
   {

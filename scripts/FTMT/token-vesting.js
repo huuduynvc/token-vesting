@@ -8,8 +8,8 @@ async function main() {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
   // token vesting contract
-  const tokenAddress = "0x9c4A9901B123123ce77401f97AbA1A81B30e576C";
-  const mockTokenVestingAddress = "0x9c33A3AbFb90d007093A181a1a64bF37fda9DdeB";
+  const tokenAddress = "0x0d9f5bE5b0Fcfa14077C9fddd088c910b409Ce40";
+  const mockTokenVestingAddress = "0xefd09f4FA4412c7f12ae223Df0f9B49d196E403F";
 
   const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, signer);
 
@@ -58,75 +58,108 @@ async function main() {
   const slicePeriodSeconds = cliff;
   const revokable = true;
 
-  // create new vesting schedule for round 1
-  await tokenVesting.createVestingSchedule(
-    walletRound1.address,
+  // create new package round 1
+  await tokenVesting.createPackage(
+    "1",
+    "round 1",
     startTime,
     12 * cliff,
     baseDuration * 32,
     slicePeriodSeconds,
+    ethers.parseUnits(String(50000), decimal)
+  );
+
+  // create new package round 2
+  await tokenVesting.createPackage(
+    "2",
+    "round 2",
+    startTime,
+    14 * cliff,
+    baseDuration * 36,
+    slicePeriodSeconds,
+    ethers.parseUnits(String(20000), decimal)
+  );
+
+  // create new package round 3
+  await tokenVesting.createPackage(
+    "3",
+    "round 3",
+    startTime,
+    25 * cliff,
+    baseDuration * 49,
+    slicePeriodSeconds,
+    ethers.parseUnits(String(20000), decimal)
+  );
+
+  // create new package round 4
+  await tokenVesting.createPackage(
+    "4",
+    "round 4",
+    startTime,
+    1 * cliff,
+    baseDuration * 7,
+    slicePeriodSeconds,
+    ethers.parseUnits(String(10000), decimal)
+  );
+
+  // create new vesting schedule for round 1
+  await tokenVesting.createVestingSchedule(
+    walletRound1.address,
+    "1",
     revokable,
     ethers.parseUnits(String(50000), decimal)
+  );
+
+  // create new vesting schedule for round 2
+  await tokenVesting.createVestingSchedule(
+    walletRound2.address,
+    "2",
+    revokable,
+    ethers.parseUnits(String(20000), decimal)
+  );
+
+  // create new vesting schedule for round 3
+  await tokenVesting.createVestingSchedule(
+    walletRound3.address,
+    "3",
+    revokable,
+    ethers.parseUnits(String(20000), decimal)
+  );
+
+  // create new vesting schedule for round 4
+  await tokenVesting.createVestingSchedule(
+    walletRound4.address,
+    "4",
+    revokable,
+    ethers.parseUnits(String(10000), decimal)
   );
 
   const round1VestingScheduleId =
     await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
       walletRound1.address,
-      0
+      2
     );
-
-  // create new vesting schedule for round 2
-  await tokenVesting.createVestingSchedule(
-    walletRound2.address,
-    startTime,
-    14 * cliff,
-    baseDuration * 36,
-    slicePeriodSeconds,
-    revokable,
-    ethers.parseUnits(String(20000), decimal)
-  );
 
   const round2VestingScheduleId =
     await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
       walletRound2.address,
-      0
+      2
     );
-
-  // create new vesting schedule for round 3
-  await tokenVesting.createVestingSchedule(
-    walletRound3.address,
-    startTime,
-    25 * cliff,
-    baseDuration * 49,
-    slicePeriodSeconds,
-    revokable,
-    ethers.parseUnits(String(20000), decimal)
-  );
 
   const round3VestingScheduleId =
     await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
       walletRound3.address,
-      0
+      2
     );
-
-  // create new vesting schedule for round 4
-  await tokenVesting.createVestingSchedule(
-    walletRound4.address,
-    startTime,
-    1 * cliff,
-    baseDuration * 7,
-    slicePeriodSeconds,
-    revokable,
-    ethers.parseUnits(String(10000), decimal)
-  );
 
   const round4VestingScheduleId =
     await tokenVesting.computeVestingScheduleIdForAddressAndIndex(
       walletRound4.address,
-      0
+      2
     );
 
   for (let i = 1; i <= 50; i++) {
+    console.log("i: ", i);
     // set time to half the vesting period
     const checkTime = baseTime + baseDuration * i + 1;
 

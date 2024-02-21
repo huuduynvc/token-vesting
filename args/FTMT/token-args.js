@@ -1,1 +1,1 @@
-module.exports = ["Test Token", "TT", 1000000];
+module.exports = ["TestToken", "TT", 1000000];

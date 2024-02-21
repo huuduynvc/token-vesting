@@ -4,12 +4,14 @@
   "description": "erc20 token vesting contract",
   "main": "index.js",
   "scripts": {
-    "test": "npx hardhat --network localhost test"
+    "test": "npx hardhat --network localhost test",
+    "test:token-vesting:ftmt": "node ./scripts/FTMT/token-vesting.js"
   },
   "author": "duy nguyen",
   "license": "ISC",
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.6",
+    "@nomicfoundation/hardhat-verify": "^2.0.4",
     "@nomiclabs/buidler": "^1.4.8",
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers",
     "@nomiclabs/hardhat-ganache": "^2.0.0",
@@ -28,7 +30,8 @@
     "@nomiclabs/hardhat-etherscan": "^3.1.2",
     "@openzeppelin/contracts": "^4.3.2",
     "@openzeppelin/contracts-upgradeable": "^4.4.2",
-    "@openzeppelin/hardhat-upgrades": "^1.13.0",
+    "@openzeppelin/hardhat-upgrades": "^3.0.3",
+    "@openzeppelin/upgrades": "^2.8.0",
     "dotenv": "^10.0.0",
     "moralis": "^0.0.183",
     "solmate": "^6.2.0",
